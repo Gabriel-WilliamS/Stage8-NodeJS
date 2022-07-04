@@ -1,6 +1,8 @@
 const { hash, compare } = require("bcrypt");
 const knex = require("../database/knex");
 const AppError = require("../utils/AppError");
+const { format } = require("date-fns");
+const ptBr = require("date-fns/locale/pt-BR");
 
 class UsersController {
   async create(request, response) {
@@ -17,8 +19,17 @@ class UsersController {
     }
 
     const passwordHashed = await hash(password, 8);
+    let dateFormatting = format(new Date(), "yyyy'-'LL'-'dd' 'HH':'mm':'ss", {
+      locale: ptBr
+    });
 
-    const newUser = { name, email, password: passwordHashed };
+    const newUser = {
+      name,
+      email,
+      password: passwordHashed,
+      created_at: dateFormatting,
+      updated_at: dateFormatting
+    };
 
     await knex("users").insert(newUser);
 
@@ -59,14 +70,32 @@ class UsersController {
     if (new_password) {
       new_password = await hash(new_password, 8);
     }
+    let dateFormatting = format(new Date(), "yyyy'-'LL'-'dd' 'HH':'mm':'ss", {
+      locale: ptBr
+    });
 
     user.name = name ?? user.name;
     user.email = email ?? user.email;
     user.password = new_password ?? user.password;
+    user.updated_at = dateFormatting;
 
     await knex("users").where({ id }).update(user);
 
     response.json({ message: "Usuário modificado com sucesso" });
+  }
+
+  async delete(request, response) {
+    const { id } = request.params;
+
+    const userAlreadyExists = await knex("users").where({ id }).first();
+
+    if (!userAlreadyExists) {
+      throw new AppError("ID de usuário não existente");
+    }
+
+    await knex("users").where({ id }).delete();
+    const user = userAlreadyExists;
+    response.json({ message: "Usuário deletado com sucesso!", user });
   }
 }
 
