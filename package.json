@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npm run migrate && pm2-runtime start ecosystem.config.js --env production",
-    "dev": "npm run migrate && nodemon ./src/server.js",
+    "dev": "SET \"NODE_ENV=development\" && npm run migrate && nodemon ./src/server.js",
     "migrate": "knex migrate:latest",
     "table": "knex migrate:make ",
     "rollback": "knex migrate:rollback --all && knex migrate:latest"
