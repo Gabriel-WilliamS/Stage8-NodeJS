@@ -6,13 +6,7 @@ const ptBr = require("date-fns/locale/pt-BR");
 class MoviesNotesController {
   async create(request, response) {
     const { title, description, rating, tags } = request.body;
-    const { id } = request.params;
-
-    const userAlreadyExists = await knex("users").where({ id }).first();
-
-    if (!userAlreadyExists) {
-      throw new AppError("ID de usuário não existente");
-    }
+    const { id } = request.user;
 
     if (!title || !description || !rating || !tags) {
       throw new AppError("Todos os campos devem ser preenchidos!");
@@ -105,16 +99,20 @@ class MoviesNotesController {
   }
 
   async showAll(request, response) {
-    const { id } = request.params;
+    const { id } = request.user;
+    const { title } = request.query;
+    let allMoviesNotes;
 
-    const userAlreadyExists = await knex("users").where({ id }).first();
-
-    if (!userAlreadyExists) {
-      throw new AppError("ID do usuário não existente");
+    if (title) {
+      allMoviesNotes = await knex("movie_notes")
+        .where({ user_id: id })
+        .whereLike("title", `%${title}%`);
+    } else {
+      allMoviesNotes = await knex("movie_notes").where({ user_id: id });
     }
 
-    const allMoviesNotes = await knex("movie_notes").where({ user_id: id });
     const userTags = await knex("movie_tags").where({ user_id: id });
+
     const allMovieNotessWithTags = allMoviesNotes.map((movieNotes) => {
       const noteTags = userTags.filter((tag) => tag.note_id === movieNotes.id);
 
@@ -125,6 +123,18 @@ class MoviesNotesController {
     });
 
     response.json(allMovieNotessWithTags);
+  }
+
+  async showByid(request, response) {
+    const { note_id } = request.params;
+    const { id } = request.user;
+    const note = await knex("movie_notes")
+      .where({ id: note_id, user_id: id })
+      .first();
+
+    const tags = await knex("movie_tags").where({ note_id, user_id: id });
+
+    response.json({ note, tags });
   }
 }
 

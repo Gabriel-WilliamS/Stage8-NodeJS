@@ -7,8 +7,6 @@ class NoteTagsController {
     const { user_id } = request.query;
     const { id } = request.params;
 
-    console.log(id);
-
     const userAlreadyExists = await knex("users")
       .where({ id: user_id })
       .first();

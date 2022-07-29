@@ -38,8 +38,8 @@ class UsersController {
 
   async update(request, response) {
     const { name, email, password } = request.body;
-    let { new_password } = request.body;
-    const { id } = request.params;
+    let { newPassword } = request.body;
+    const { id } = request.user;
 
     const userExists = await knex("users").where({ id }).first();
 
@@ -64,11 +64,13 @@ class UsersController {
     const checkOldPassword = await compare(password, user.password);
 
     if (!checkOldPassword) {
-      throw new AppError("A senha antiga não confere!");
+      throw new AppError("Senha atual invalida!");
     }
 
-    if (new_password) {
-      new_password = await hash(new_password, 8);
+    if (newPassword != "") {
+      newPassword = await hash(newPassword, 8);
+    } else {
+      newPassword = null;
     }
     let dateFormatting = format(new Date(), "yyyy'-'LL'-'dd' 'HH':'mm':'ss", {
       locale: ptBr
@@ -76,7 +78,7 @@ class UsersController {
 
     user.name = name ?? user.name;
     user.email = email ?? user.email;
-    user.password = new_password ?? user.password;
+    user.password = newPassword ?? user.password;
     user.updated_at = dateFormatting;
 
     await knex("users").where({ id }).update(user);
