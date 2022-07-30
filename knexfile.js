@@ -3,7 +3,7 @@ const path = require("path");
 module.exports = {
   production: {
     client: "pg",
-    connection: process.env.URI,
+    connection: process.env.DATABASE_URL,
     pool: {
       afterCreate: (conn, cb) => conn.run("PRAGMA foreign_keys = ON", cb)
     },
