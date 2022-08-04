@@ -32,8 +32,8 @@ class MoviesNotesController {
 
     const tagsInsert = tags.map((name) => {
       return {
-        note_id,
-        user_id: id,
+        note_id: Number(note_id),
+        user_id: Number(id),
         name
       };
     });
