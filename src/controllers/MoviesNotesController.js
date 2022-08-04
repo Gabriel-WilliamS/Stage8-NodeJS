@@ -28,19 +28,24 @@ class MoviesNotesController {
       updated_at: dateFormatting
     };
 
-    const note_id = await knex("movie_notes").insert(movieNotes);
+    const note_id = await knex("movie_notes")
+      .insert(movieNotes)
+      .returning("id");
 
     const tagsInsert = tags.map((name) => {
       return {
-        note_id,
+        note_id: note_id[0].id,
         user_id: id,
         name
       };
     });
 
-    console.log("TAGS INSERT >>>>>>>>>>>>>>>>>", tagsInsert);
+    console.log("TAGS note_id >>>>>>>>>>>>>>>>>", note_id);
 
-    await knex("movie_tags").insert(tagsInsert);
+    for (let tags of tagsInsert) {
+      console.log(tags);
+      await knex("movie_tags").insert(tags);
+    }
 
     response.json({ message: "Nota de filme cadastrada com sucesso!" });
   }
